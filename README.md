@@ -1,3 +1,3 @@
 # Example URL:
 
-https://r5.ro/yoga?interval=8&fade=1.5
+https://yoga.r5.ro?interval=8&fade=1.5
