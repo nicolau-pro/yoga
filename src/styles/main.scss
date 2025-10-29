@@ -51,7 +51,7 @@ body {
 
 .caption {
   position: absolute;
-  top: 8vw;
+  top: 8vh;
   left: 50%;
   transform: translateX(-50%);
   color: #10a1ea;
@@ -65,7 +65,7 @@ body {
   letter-spacing: 0.02em;
   white-space: nowrap;
   @media (max-width: 768px) {
-    font-size: max(5vw, 5rem);
+    font-size: 2rem;
   }
 }
 
