@@ -30,6 +30,37 @@ export default function Slideshow() {
     );
   }, []);
 
+  // === Keep screen awake when page loads ===
+  useEffect(() => {
+    let wakeLock = null;
+
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('Screen wake lock activated');
+        }
+      } catch (err) {
+        console.warn('Wake Lock error:', err);
+      }
+    };
+
+    requestWakeLock();
+
+    // Re-acquire the lock if page visibility changes
+    const handleVisibilityChange = () => {
+      if (wakeLock !== null && document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLock) wakeLock.release().catch(() => {});
+    };
+  }, []);
+
   // === Format filename for display ===
   const getDisplayName = (filename) => {
     let name = filename.replace(/\.[^/.]+$/, '');
