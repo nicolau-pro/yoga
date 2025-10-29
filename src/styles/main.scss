@@ -1,0 +1,17 @@
+$primary: #108fff;
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f7faff;
+  color: #222;
+}
+
+.app {
+  text-align: center;
+  padding: 3rem;
+
+  h1 {
+    color: $primary;
+  }
+}
