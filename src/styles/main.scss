@@ -1,17 +1,32 @@
-$primary: #108fff;
-
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f7faff;
-  color: #222;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.app {
-  text-align: center;
-  padding: 3rem;
+.slideshow {
+  width: 910px;
+  height: 910px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 
-  h1 {
-    color: $primary;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 1s ease;
+    position: absolute;
+    inset: 0;
+    opacity: 1;
+  }
+
+  /* optional fade animation */
+  img.fade-exit {
+    opacity: 0;
   }
 }
