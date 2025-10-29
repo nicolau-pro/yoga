@@ -65,3 +65,21 @@ body {
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
+
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 4;
+  overflow: hidden;
+
+  .progress-fill {
+    height: 100%;
+    background: #108fff; /* GoWise blue */
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+}
