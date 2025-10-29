@@ -89,7 +89,7 @@ export default function Slideshow() {
   };
 
   useEffect(() => {
-    if (FADE_SOUND) audioRef.current = new Audio(`/src/assets/${FADE_SOUND}`);
+    if (FADE_SOUND) audioRef.current = new Audio(`/assets/${FADE_SOUND}`);
     startSlideshow();
 
     return () => {
@@ -135,7 +135,7 @@ export default function Slideshow() {
     <div className="slideshow">
       {showCaption && <div className="caption">{currentName}</div>}
 
-      <img src={`/src/assets/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
+      <img src={`/assets/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
 
       <div
         className={`fade-layer ${fading ? 'visible' : ''}`}
