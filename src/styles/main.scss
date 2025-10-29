@@ -29,8 +29,8 @@ body {
     object-fit: contain;
     position: absolute;
     z-index: 1;
-    scale: 1.8;
-    transform: translateY(-4vh); /* move image slightly up */
+    scale: 1.6;
+    transform: translateY(-6vh); /* move image slightly up */
   }
 
   .fade-layer {
@@ -68,7 +68,7 @@ body {
 
 .progress-bar {
   position: absolute;
-  bottom: 4vh; /* slightly above the bottom edge */
+  bottom: 6vh; /* slightly above the bottom edge */
   left: 50%;
   transform: translateX(-50%);
   width: 90vw; /* shorter than full width */
