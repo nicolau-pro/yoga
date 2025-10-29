@@ -5,9 +5,11 @@ export default function Slideshow() {
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
   const audioRef = useRef(null);
   const manualRef = useRef(false);
   const progressRef = useRef(null);
+  const intervalRef = useRef(null);
 
   // === Format filename for display ===
   const getDisplayName = (filename) => {
@@ -21,10 +23,11 @@ export default function Slideshow() {
   // === Progress bar logic ===
   const startProgress = (intervalMs) => {
     cancelAnimationFrame(progressRef.current);
-    setProgress(0); // ✅ reset to 0
+    setProgress(0); // reset to 0
     const startTime = performance.now();
 
     const updateProgress = (now) => {
+      if (paused) return; // stop updating if paused
       const elapsed = now - startTime;
       const pct = Math.min((elapsed / intervalMs) * 100, 100);
       setProgress(pct);
@@ -36,15 +39,16 @@ export default function Slideshow() {
     progressRef.current = requestAnimationFrame(updateProgress);
   };
 
-  useEffect(() => {
-    if (FADE_SOUND) audioRef.current = new Audio(`/src/assets/${FADE_SOUND}`);
+  const startSlideshow = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     const intervalMs = SLIDE_INTERVAL * 1000;
     const fadeMs = FADE_DURATION * 1000;
 
-    startProgress(intervalMs); // start immediately on load
+    startProgress(intervalMs);
 
-    const id = setInterval(() => {
+    intervalRef.current = setInterval(() => {
+      if (paused) return;
       if (manualRef.current) {
         manualRef.current = false;
         startProgress(intervalMs);
@@ -65,17 +69,31 @@ export default function Slideshow() {
         startProgress(intervalMs);
       }, fadeMs);
     }, intervalMs + fadeMs);
+  };
+
+  useEffect(() => {
+    if (FADE_SOUND) audioRef.current = new Audio(`/src/assets/${FADE_SOUND}`);
+    startSlideshow();
 
     return () => {
-      clearInterval(id);
+      clearInterval(intervalRef.current);
       cancelAnimationFrame(progressRef.current);
     };
-  }, [fading]);
+  }, [paused]);
 
-  // === Handle manual navigation ===
+  // === Handle keyboard input ===
   useEffect(() => {
     const handleKey = (e) => {
       const total = SLIDES.length;
+
+      if (e.key === ' ') {
+        e.preventDefault();
+        setPaused((prev) => !prev);
+        return;
+      }
+
+      if (paused) return; // don't change slides if paused
+
       if (e.key === 'ArrowRight') {
         manualRef.current = true;
         setIndex((i) => (i + 1) % total);
@@ -91,7 +109,7 @@ export default function Slideshow() {
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [paused]);
 
   const currentName = getDisplayName(SLIDES[index]);
   const showCaption = currentName.toLowerCase() !== 'mandala';
@@ -107,7 +125,6 @@ export default function Slideshow() {
         style={{ transitionDuration: `${FADE_DURATION}s` }}
       />
 
-      {/* Progress bar */}
       <div className="progress-bar">
         <div
           className="progress-fill"
@@ -117,6 +134,9 @@ export default function Slideshow() {
           }}
         ></div>
       </div>
+
+      {/* Optional pause indicator */}
+      {paused && <div className="pause-indicator">Paused</div>}
     </div>
   );
 }
