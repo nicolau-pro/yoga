@@ -5,7 +5,7 @@ export default function Slideshow() {
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [paused, setPaused] = useState(true); // 👈 start paused
+  const [paused, setPaused] = useState(true); // start paused
   const audioRef = useRef(null);
   const manualRef = useRef(false);
   const progressRef = useRef(null);
@@ -128,12 +128,16 @@ export default function Slideshow() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [paused]);
 
+  // === Click handler (acts like spacebar) ===
+  const handleClick = () => setPaused((p) => !p);
+
   const currentName = getDisplayName(SLIDES[index]);
   const showCaption = currentName.toLowerCase() !== 'mandala';
 
   return (
-    <div className="slideshow">
-      {showCaption && <div className="caption">{currentName}</div>}
+    <div className="slideshow" onClick={handleClick}>
+      {/* Caption at top */}
+      {showCaption && <div className="caption">{paused ? '(Paused)' : currentName}</div>}
 
       <img src={`/assets/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
 
@@ -151,8 +155,6 @@ export default function Slideshow() {
           }}
         ></div>
       </div>
-
-      {paused && <div className="pause-indicator">Paused</div>}
     </div>
   );
 }
