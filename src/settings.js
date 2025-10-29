@@ -1,12 +1,7 @@
-// === Slideshow Settings ===
+export const SLIDE_INTERVAL = 5; // seconds each image is shown
+export const FADE_DURATION = 1; // seconds for fade in/out
+export const FADE_SOUND = 'Chime.wav'; // sound file name
 
-// seconds each image stays visible
-export const SLIDE_INTERVAL = 3;
-
-// seconds for fade in/out transition
-export const FADE_DURATION = 1.5;
-
-// image list
 export const SLIDES = [
   'Mandala.jpg',
   'SupineSpinalTwist_L.png',

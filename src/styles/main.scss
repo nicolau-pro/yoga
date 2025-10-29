@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap');
+
 html,
 body {
   margin: 0;
@@ -27,7 +29,7 @@ body {
     object-fit: contain;
     position: absolute;
     z-index: 1;
-    transition: opacity 0.3s linear;
+    scale: 1.5;
   }
 
   .fade-layer {
@@ -35,7 +37,8 @@ body {
     inset: 0;
     background: #fff;
     opacity: 0;
-    transition: opacity var(--fade-time, 1.5s) ease-in-out;
+    transition-property: opacity;
+    transition-timing-function: ease-in-out;
     z-index: 2;
     pointer-events: none;
   }
@@ -43,4 +46,22 @@ body {
   .fade-layer.visible {
     opacity: 1;
   }
+}
+
+.caption {
+  position: absolute;
+  top: 10vw;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.7);
+  color: #000;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 5rem;
+  font-weight: 400;
+  padding: 0.4em 1em;
+  border-radius: 8px;
+  z-index: 3;
+  user-select: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
