@@ -5,45 +5,62 @@ export default function Slideshow() {
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true); // 👈 start paused
   const audioRef = useRef(null);
   const manualRef = useRef(false);
   const progressRef = useRef(null);
   const intervalRef = useRef(null);
 
+  // === Read optional URL overrides (interval & fade) ===
+  const getUrlConfig = () => {
+    const params = new URLSearchParams(window.location.search);
+    const interval = parseFloat(params.get('interval')) || SLIDE_INTERVAL;
+    const fade = parseFloat(params.get('fade')) || FADE_DURATION;
+    return { interval, fade };
+  };
+
+  const [config] = useState(getUrlConfig());
+
+  // === Open YouTube Yoga Music tab on load ===
+  useEffect(() => {
+    window.open(
+      'https://www.youtube.com/results?search_query=yoga+music',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  }, []);
+
   // === Format filename for display ===
   const getDisplayName = (filename) => {
-    let name = filename.replace(/\.[^/.]+$/, ''); // remove extension
-    name = name.replace(/_R$|_L$/i, ''); // remove trailing _R/_L
-    name = name.replace(/_/g, ' '); // replace underscores
-    name = name.replace(/([a-z])([A-Z])/g, '$1 $2'); // add space before capitals
+    let name = filename.replace(/\.[^/.]+$/, '');
+    name = name.replace(/_R$|_L$/i, '');
+    name = name.replace(/_/g, ' ');
+    name = name.replace(/([a-z])([A-Z])/g, '$1 $2');
     return name.trim();
   };
 
   // === Progress bar logic ===
   const startProgress = (intervalMs) => {
     cancelAnimationFrame(progressRef.current);
-    setProgress(0); // reset to 0
-    const startTime = performance.now();
+    setProgress(0);
+    const start = performance.now();
 
-    const updateProgress = (now) => {
-      if (paused) return; // stop updating if paused
-      const elapsed = now - startTime;
+    const update = (now) => {
+      if (paused) return;
+      const elapsed = now - start;
       const pct = Math.min((elapsed / intervalMs) * 100, 100);
       setProgress(pct);
-      if (pct < 100 && !fading) {
-        progressRef.current = requestAnimationFrame(updateProgress);
-      }
+      if (pct < 100 && !fading) progressRef.current = requestAnimationFrame(update);
     };
 
-    progressRef.current = requestAnimationFrame(updateProgress);
+    progressRef.current = requestAnimationFrame(update);
   };
 
   const startSlideshow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    const intervalMs = SLIDE_INTERVAL * 1000;
-    const fadeMs = FADE_DURATION * 1000;
+    const intervalMs = config.interval * 1000;
+    const fadeMs = config.fade * 1000;
 
     startProgress(intervalMs);
 
@@ -55,7 +72,7 @@ export default function Slideshow() {
         return;
       }
 
-      // play chime when fade starts
+      // play chime at fade start
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(() => {});
@@ -81,18 +98,18 @@ export default function Slideshow() {
     };
   }, [paused]);
 
-  // === Handle keyboard input ===
+  // === Keyboard controls ===
   useEffect(() => {
     const handleKey = (e) => {
       const total = SLIDES.length;
 
       if (e.key === ' ') {
         e.preventDefault();
-        setPaused((prev) => !prev);
+        setPaused((p) => !p);
         return;
       }
 
-      if (paused) return; // don't change slides if paused
+      if (paused) return;
 
       if (e.key === 'ArrowRight') {
         manualRef.current = true;
@@ -122,7 +139,7 @@ export default function Slideshow() {
 
       <div
         className={`fade-layer ${fading ? 'visible' : ''}`}
-        style={{ transitionDuration: `${FADE_DURATION}s` }}
+        style={{ transitionDuration: `${config.fade}s` }}
       />
 
       <div className="progress-bar">
@@ -135,7 +152,6 @@ export default function Slideshow() {
         ></div>
       </div>
 
-      {/* Optional pause indicator */}
       {paused && <div className="pause-indicator">Paused</div>}
     </div>
   );
