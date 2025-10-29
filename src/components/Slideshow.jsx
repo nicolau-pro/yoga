@@ -7,6 +7,7 @@ export default function Slideshow() {
   const [progress, setProgress] = useState(0);
   const audioRef = useRef(null);
   const manualRef = useRef(false);
+  const progressRef = useRef(null);
 
   // === Format filename for display ===
   const getDisplayName = (filename) => {
@@ -17,35 +18,40 @@ export default function Slideshow() {
     return name.trim();
   };
 
+  // === Progress bar logic ===
+  const startProgress = (intervalMs) => {
+    cancelAnimationFrame(progressRef.current);
+    setProgress(0); // ✅ reset to 0
+    const startTime = performance.now();
+
+    const updateProgress = (now) => {
+      const elapsed = now - startTime;
+      const pct = Math.min((elapsed / intervalMs) * 100, 100);
+      setProgress(pct);
+      if (pct < 100 && !fading) {
+        progressRef.current = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    progressRef.current = requestAnimationFrame(updateProgress);
+  };
+
   useEffect(() => {
     if (FADE_SOUND) audioRef.current = new Audio(`/src/assets/${FADE_SOUND}`);
 
     const intervalMs = SLIDE_INTERVAL * 1000;
     const fadeMs = FADE_DURATION * 1000;
 
-    // progress bar updates
-    let progressTimer;
-    const startProgress = () => {
-      setProgress(0);
-      const start = performance.now();
-      progressTimer = requestAnimationFrame(function update(now) {
-        const elapsed = now - start;
-        const pct = Math.min((elapsed / intervalMs) * 100, 100);
-        setProgress(pct);
-        if (pct < 100 && !fading) requestAnimationFrame(update);
-      });
-    };
-
-    startProgress();
+    startProgress(intervalMs); // start immediately on load
 
     const id = setInterval(() => {
       if (manualRef.current) {
         manualRef.current = false;
-        startProgress();
+        startProgress(intervalMs);
         return;
       }
 
-      // play chime at fade start
+      // play chime when fade starts
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(() => {});
@@ -56,27 +62,28 @@ export default function Slideshow() {
       setTimeout(() => {
         setIndex((i) => (i + 1) % SLIDES.length);
         setFading(false);
-        startProgress();
+        startProgress(intervalMs);
       }, fadeMs);
     }, intervalMs + fadeMs);
 
     return () => {
       clearInterval(id);
-      cancelAnimationFrame(progressTimer);
+      cancelAnimationFrame(progressRef.current);
     };
   }, [fading]);
 
   // === Handle manual navigation ===
   useEffect(() => {
     const handleKey = (e) => {
+      const total = SLIDES.length;
       if (e.key === 'ArrowRight') {
         manualRef.current = true;
-        setIndex((i) => (i + 1) % SLIDES.length);
+        setIndex((i) => (i + 1) % total);
         setFading(false);
         setProgress(0);
       } else if (e.key === 'ArrowLeft') {
         manualRef.current = true;
-        setIndex((i) => (i - 1 + SLIDES.length) % SLIDES.length);
+        setIndex((i) => (i - 1 + total) % total);
         setFading(false);
         setProgress(0);
       }
