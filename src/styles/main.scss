@@ -29,8 +29,8 @@ body {
     object-fit: contain;
     position: absolute;
     z-index: 1;
-    scale: 1.3;
-    transform: translateY(-6vh); /* move image slightly up */
+    scale: 1;
+    transform: translateY(-6vh);
   }
 
   .fade-layer {
