@@ -2,6 +2,7 @@ export const SLIDE_INTERVAL = 5; // seconds each image is shown
 export const FADE_DURATION = 1; // seconds for fade in/out
 export const FADE_SOUND = 'Chime.mp3'; // sound file name
 export const ASSETS_FOLDER = 'assets-gemini-wide';
+export const END_ZOOM_SCALE = 1.08; // scale multiplier at end of slide
 
 export const SLIDES = [
   'Mandala.webp',

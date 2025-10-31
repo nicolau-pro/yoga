@@ -1,5 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
-import { SLIDES, SLIDE_INTERVAL, FADE_DURATION, FADE_SOUND, ASSETS_FOLDER } from '../settings';
+import {
+  SLIDES,
+  SLIDE_INTERVAL,
+  FADE_DURATION,
+  FADE_SOUND,
+  ASSETS_FOLDER,
+  END_ZOOM_SCALE,
+} from '../settings';
 
 export default function Slideshow() {
   const [index, setIndex] = useState(0);
@@ -33,7 +40,6 @@ export default function Slideshow() {
   // === Keep screen awake when page loads ===
   useEffect(() => {
     let wakeLock = null;
-
     const requestWakeLock = async () => {
       try {
         if ('wakeLock' in navigator) {
@@ -44,17 +50,11 @@ export default function Slideshow() {
         console.warn('Wake Lock error:', err);
       }
     };
-
     requestWakeLock();
-
-    // Re-acquire the lock if page visibility changes
     const handleVisibilityChange = () => {
-      if (wakeLock !== null && document.visibilityState === 'visible') {
-        requestWakeLock();
-      }
+      if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (wakeLock) wakeLock.release().catch(() => {});
@@ -92,31 +92,35 @@ export default function Slideshow() {
 
     const intervalMs = config.interval * 1000;
     const fadeMs = config.fade * 1000;
+    const totalSlideTime = intervalMs + fadeMs;
 
-    startProgress(intervalMs);
+    startProgress(totalSlideTime);
 
     intervalRef.current = setInterval(() => {
       if (paused) return;
       if (manualRef.current) {
         manualRef.current = false;
-        startProgress(intervalMs);
+        startProgress(totalSlideTime);
         return;
       }
 
-      // play chime at fade start
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      }
-
-      setFading(true);
-
+      // start fade at end of zoom
       setTimeout(() => {
-        setIndex((i) => (i + 1) % SLIDES.length);
-        setFading(false);
-        startProgress(intervalMs);
-      }, fadeMs);
-    }, intervalMs + fadeMs);
+        setFading(true);
+
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+
+        // end fade, switch image, reset zoom+progress
+        setTimeout(() => {
+          setIndex((i) => (i + 1) % SLIDES.length);
+          setFading(false);
+          startProgress(totalSlideTime);
+        }, fadeMs);
+      }, intervalMs);
+    }, totalSlideTime);
   };
 
   useEffect(() => {
@@ -133,7 +137,6 @@ export default function Slideshow() {
   useEffect(() => {
     const handleKey = (e) => {
       const total = SLIDES.length;
-
       if (e.key === ' ') {
         e.preventDefault();
         setPaused((p) => !p);
@@ -165,11 +168,24 @@ export default function Slideshow() {
   const currentName = getDisplayName(SLIDES[index]);
   const showCaption = currentName.toLowerCase() !== 'mandala';
 
+  // === Zoom based on progress (continuous across zoom+fade) ===
+  const minScale = 1.0;
+  const scale = minScale + (END_ZOOM_SCALE - minScale) * (progress / 100);
+
   return (
     <div className="slideshow" onClick={handleClick}>
       {showCaption && <div className="caption">{paused ? '(Paused)' : currentName}</div>}
 
-      <img src={`/${ASSETS_FOLDER}/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
+      <img
+        src={`/${ASSETS_FOLDER}/${SLIDES[index]}`}
+        alt={currentName}
+        key={SLIDES[index]}
+        style={{
+          transform: `scale(${scale.toFixed(3)})`,
+          opacity: 1,
+          transition: 'none',
+        }}
+      />
 
       <div className="progress-bar">
         <div
