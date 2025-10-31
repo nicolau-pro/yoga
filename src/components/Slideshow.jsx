@@ -120,7 +120,7 @@ export default function Slideshow() {
   };
 
   useEffect(() => {
-    if (FADE_SOUND) audioRef.current = new Audio(`/${ASSETS_FOLDER}/${FADE_SOUND}`);
+    if (FADE_SOUND) audioRef.current = new Audio(`/chime/${FADE_SOUND}`);
     startSlideshow();
 
     return () => {
@@ -167,15 +167,9 @@ export default function Slideshow() {
 
   return (
     <div className="slideshow" onClick={handleClick}>
-      {/* Caption at top */}
       {showCaption && <div className="caption">{paused ? '(Paused)' : currentName}</div>}
 
       <img src={`/${ASSETS_FOLDER}/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
-
-      <div
-        className={`fade-layer ${fading ? 'visible' : ''}`}
-        style={{ transitionDuration: `${config.fade}s` }}
-      />
 
       <div className="progress-bar">
         <div
@@ -186,6 +180,11 @@ export default function Slideshow() {
           }}
         ></div>
       </div>
+
+      <div
+        className={`fade-layer ${fading ? 'visible' : ''}`}
+        style={{ transitionDuration: `${config.fade}s` }}
+      />
     </div>
   );
 }
