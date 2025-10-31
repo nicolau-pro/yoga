@@ -1,9 +1,10 @@
 export const SLIDE_INTERVAL = 5; // seconds each image is shown
 export const FADE_DURATION = 1; // seconds for fade in/out
 export const FADE_SOUND = 'Chime.wav'; // sound file name
+export const ASSETS_FOLDER = 'assets-gemini';
 
 export const SLIDES = [
-  'Mandala.jpg',
+  'Mandala.png',
   'SupineSpinalTwist_L.png',
   'SupineSpinalTwist_R.png',
   'HeadToKnee_L.png',
@@ -30,5 +31,6 @@ export const SLIDES = [
   'Plank.png',
   'DownwardDog.png',
   'Dolphin.png',
-  'Mandala.jpg',
+  'Banana_R.png',
+  'Mandala.png',
 ];

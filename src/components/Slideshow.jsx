@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { SLIDES, SLIDE_INTERVAL, FADE_DURATION, FADE_SOUND } from '../settings';
+import { SLIDES, SLIDE_INTERVAL, FADE_DURATION, FADE_SOUND, ASSETS_FOLDER } from '../settings';
 
 export default function Slideshow() {
   const [index, setIndex] = useState(0);
@@ -120,7 +120,7 @@ export default function Slideshow() {
   };
 
   useEffect(() => {
-    if (FADE_SOUND) audioRef.current = new Audio(`/assets/${FADE_SOUND}`);
+    if (FADE_SOUND) audioRef.current = new Audio(`/${ASSETS_FOLDER}/${FADE_SOUND}`);
     startSlideshow();
 
     return () => {
@@ -170,7 +170,7 @@ export default function Slideshow() {
       {/* Caption at top */}
       {showCaption && <div className="caption">{paused ? '(Paused)' : currentName}</div>}
 
-      <img src={`/assets/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
+      <img src={`/${ASSETS_FOLDER}/${SLIDES[index]}`} alt={currentName} key={SLIDES[index]} />
 
       <div
         className={`fade-layer ${fading ? 'visible' : ''}`}
