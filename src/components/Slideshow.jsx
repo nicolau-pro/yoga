@@ -14,7 +14,6 @@ export default function Slideshow() {
   const [progress, setProgress] = useState(0);
   const [started, setStarted] = useState(false);
   const audioRef = useRef(null);
-  const manualRef = useRef(false);
   const progressRef = useRef(null);
   const intervalRef = useRef(null);
 
@@ -120,11 +119,6 @@ export default function Slideshow() {
 
     // Continue cycling automatically
     intervalRef.current = setInterval(() => {
-      if (manualRef.current) {
-        manualRef.current = false;
-        startProgress(totalSlideTime);
-        return;
-      }
       runNextSlide(intervalMs, fadeMs, totalSlideTime);
     }, totalSlideTime);
   };
@@ -139,29 +133,6 @@ export default function Slideshow() {
       clearInterval(intervalRef.current);
       cancelAnimationFrame(progressRef.current);
     };
-  }, [started]);
-
-  // === Keyboard navigation ===
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (!started) return;
-      const total = SLIDES.length;
-
-      if (e.key === 'ArrowRight') {
-        manualRef.current = true;
-        setIndex((i) => (i + 1) % total);
-        setFading(false);
-        setProgress(0);
-      } else if (e.key === 'ArrowLeft') {
-        manualRef.current = true;
-        setIndex((i) => (i - 1 + total) % total);
-        setFading(false);
-        setProgress(0);
-      }
-    };
-
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
   }, [started]);
 
   const handleClick = () => {
