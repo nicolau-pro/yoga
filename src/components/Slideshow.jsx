@@ -12,7 +12,7 @@ export default function Slideshow() {
   const [index, setIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [paused, setPaused] = useState(true); // start paused
+  const [started, setStarted] = useState(false);
   const audioRef = useRef(null);
   const manualRef = useRef(false);
   const progressRef = useRef(null);
@@ -30,14 +30,16 @@ export default function Slideshow() {
 
   // === Open YouTube Yoga Music tab on load ===
   useEffect(() => {
-    window.open(
-      'https://www.youtube.com/results?search_query=yoga+music',
-      '_blank',
-      'noopener,noreferrer'
-    );
+    window.addEventListener('load', () => {
+      window.open(
+        'https://www.youtube.com/results?search_query=yoga+music',
+        '_blank',
+        'noopener,noreferrer'
+      );
+    });
   }, []);
 
-  // === Keep screen awake when page loads ===
+  // === Keep screen awake ===
   useEffect(() => {
     let wakeLock = null;
     const requestWakeLock = async () => {
@@ -77,7 +79,6 @@ export default function Slideshow() {
     const start = performance.now();
 
     const update = (now) => {
-      if (paused) return;
       const elapsed = now - start;
       const pct = Math.min((elapsed / intervalMs) * 100, 100);
       setProgress(pct);
@@ -87,6 +88,25 @@ export default function Slideshow() {
     progressRef.current = requestAnimationFrame(update);
   };
 
+  const runNextSlide = (intervalMs, fadeMs, totalSlideTime) => {
+    // Start fade at end of zoom
+    setTimeout(() => {
+      setFading(true);
+
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
+
+      // End fade, switch image, reset zoom+progress
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % SLIDES.length);
+        setFading(false);
+        startProgress(totalSlideTime);
+      }, fadeMs);
+    }, intervalMs);
+  };
+
   const startSlideshow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -94,36 +114,24 @@ export default function Slideshow() {
     const fadeMs = config.fade * 1000;
     const totalSlideTime = intervalMs + fadeMs;
 
+    // Start progress + first transition immediately
     startProgress(totalSlideTime);
+    runNextSlide(intervalMs, fadeMs, totalSlideTime);
 
+    // Continue cycling automatically
     intervalRef.current = setInterval(() => {
-      if (paused) return;
       if (manualRef.current) {
         manualRef.current = false;
         startProgress(totalSlideTime);
         return;
       }
-
-      // start fade at end of zoom
-      setTimeout(() => {
-        setFading(true);
-
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(() => {});
-        }
-
-        // end fade, switch image, reset zoom+progress
-        setTimeout(() => {
-          setIndex((i) => (i + 1) % SLIDES.length);
-          setFading(false);
-          startProgress(totalSlideTime);
-        }, fadeMs);
-      }, intervalMs);
+      runNextSlide(intervalMs, fadeMs, totalSlideTime);
     }, totalSlideTime);
   };
 
+  // === Start slideshow only after click ===
   useEffect(() => {
+    if (!started) return;
     if (FADE_SOUND) audioRef.current = new Audio(`/chime/${FADE_SOUND}`);
     startSlideshow();
 
@@ -131,19 +139,13 @@ export default function Slideshow() {
       clearInterval(intervalRef.current);
       cancelAnimationFrame(progressRef.current);
     };
-  }, [paused]);
+  }, [started]);
 
-  // === Keyboard controls ===
+  // === Keyboard navigation ===
   useEffect(() => {
     const handleKey = (e) => {
+      if (!started) return;
       const total = SLIDES.length;
-      if (e.key === ' ') {
-        e.preventDefault();
-        setPaused((p) => !p);
-        return;
-      }
-
-      if (paused) return;
 
       if (e.key === 'ArrowRight') {
         manualRef.current = true;
@@ -160,21 +162,22 @@ export default function Slideshow() {
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [paused]);
+  }, [started]);
 
-  // === Click handler (acts like spacebar) ===
-  const handleClick = () => setPaused((p) => !p);
+  const handleClick = () => {
+    if (!started) setStarted(true);
+  };
 
   const currentName = getDisplayName(SLIDES[index]);
   const showCaption = currentName.toLowerCase() !== 'mandala';
-
-  // === Zoom based on progress (continuous across zoom+fade) ===
   const minScale = 1.0;
   const scale = minScale + (END_ZOOM_SCALE - minScale) * (progress / 100);
 
   return (
     <div className="slideshow" onClick={handleClick}>
-      {showCaption && <div className="caption">{paused ? '(Paused)' : currentName}</div>}
+      {!started && <div className="caption">(Click to Start)</div>}
+
+      {started && showCaption && <div className="caption">{currentName}</div>}
 
       <img
         src={`/${ASSETS_FOLDER}/${SLIDES[index]}`}
@@ -182,25 +185,29 @@ export default function Slideshow() {
         key={SLIDES[index]}
         style={{
           transform: `scale(${scale.toFixed(3)})`,
-          opacity: 1,
+          opacity: started ? 1 : 0.6,
           transition: 'none',
         }}
       />
 
-      <div className="progress-bar">
-        <div
-          className="progress-fill"
-          style={{
-            width: `${progress}%`,
-            transition: fading ? 'none' : 'width 0.1s linear',
-          }}
-        ></div>
-      </div>
+      {started && (
+        <>
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${progress}%`,
+                transition: fading ? 'none' : 'width 0.1s linear',
+              }}
+            ></div>
+          </div>
 
-      <div
-        className={`fade-layer ${fading ? 'visible' : ''}`}
-        style={{ transitionDuration: `${config.fade}s` }}
-      />
+          <div
+            className={`fade-layer ${fading ? 'visible' : ''}`}
+            style={{ transitionDuration: `${config.fade}s` }}
+          />
+        </>
+      )}
     </div>
   );
 }
