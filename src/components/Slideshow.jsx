@@ -114,25 +114,19 @@ export default function Slideshow() {
     const fadeMs = config.fade * 1000;
     const totalSlideTime = intervalMs + fadeMs;
 
-    // === First frame fixed 5s ===
-    const firstIntervalMs = SLIDE_INTERVAL;
-    const firstTotalTime = firstIntervalMs + fadeMs;
+    // Start progress + first transition immediately
+    startProgress(totalSlideTime);
+    runNextSlide(intervalMs, fadeMs, totalSlideTime);
 
-    // Progress for first frame (5s)
-    startProgress(firstTotalTime);
-    runNextSlide(firstIntervalMs, fadeMs, totalSlideTime);
-
-    // After first frame, continue regular timing
-    setTimeout(() => {
-      intervalRef.current = setInterval(() => {
-        if (manualRef.current) {
-          manualRef.current = false;
-          startProgress(totalSlideTime);
-          return;
-        }
-        runNextSlide(intervalMs, fadeMs, totalSlideTime);
-      }, totalSlideTime);
-    }, firstTotalTime);
+    // Continue cycling automatically
+    intervalRef.current = setInterval(() => {
+      if (manualRef.current) {
+        manualRef.current = false;
+        startProgress(totalSlideTime);
+        return;
+      }
+      runNextSlide(intervalMs, fadeMs, totalSlideTime);
+    }, totalSlideTime);
   };
 
   // === Start slideshow only after click ===
