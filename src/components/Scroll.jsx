@@ -74,7 +74,7 @@ export default function Scroll() {
     <>
       {/* Slide counter overlay */}
       <div className="slide-counter">
-        {visibleIndex + 1} / {SLIDES.length}
+        {visibleIndex} / {SLIDES.length - 2}
       </div>
 
       {/* Scrollable gallery */}
