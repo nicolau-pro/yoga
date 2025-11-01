@@ -15,6 +15,7 @@ export default function Scroll() {
   const currentIndex = useRef(0);
   const intervalRef = useRef(null);
   const [visibleIndex, setVisibleIndex] = useState(0);
+  const [started, setStarted] = useState(false); // slideshow paused at first
 
   // === Smooth scroll to current slide ===
   const scrollToCurrent = () => {
@@ -25,8 +26,8 @@ export default function Scroll() {
     }
   };
 
-  // === Restart auto-scroll timer ===
-  const restartAutoScroll = () => {
+  // === Start or restart auto-scroll ===
+  const startAutoScroll = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
@@ -35,24 +36,24 @@ export default function Scroll() {
     }, config.interval * 1000);
   };
 
-  // === Initialize auto-scroll ===
-  useEffect(() => {
-    restartAutoScroll();
-    return () => clearInterval(intervalRef.current);
-  }, [config.interval]);
-
-  useEffect(() => {
-    document.documentElement.style.scrollBehavior = 'smooth';
-  }, []);
-
   // === Handle user click ===
   const handleClick = (e, i) => {
     const slideElement = e.currentTarget;
     const rect = slideElement.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
 
+    // --- First click: start slideshow from first slide ---
+    if (!started) {
+      currentIndex.current = 0;
+      setVisibleIndex(0);
+      scrollToCurrent();
+      setStarted(true);
+      startAutoScroll();
+      return;
+    }
+
+    // --- Normal click behavior ---
     if (i === currentIndex.current) {
-      // User clicked on current slide
       if (clickY > (rect.height * 2) / 3) {
         // bottom third → next slide
         currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
@@ -61,20 +62,26 @@ export default function Scroll() {
         currentIndex.current = (currentIndex.current - 1 + SLIDES.length) % SLIDES.length;
       }
     } else {
-      // Clicked another slide → go directly
+      // clicked on another slide
       currentIndex.current = i;
     }
 
     setVisibleIndex(currentIndex.current);
     scrollToCurrent();
-    restartAutoScroll();
+    if (started) startAutoScroll(); // reset interval
   };
+
+  // === Cleanup ===
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = 'smooth';
+    return () => clearInterval(intervalRef.current);
+  }, []);
 
   return (
     <>
-      {/* Slide counter overlay */}
+      {/* Slide counter */}
       <div className="slide-counter">
-        {visibleIndex} / {SLIDES.length - 2}
+        {visibleIndex + 1} / {SLIDES.length}
       </div>
 
       {/* Scrollable gallery */}
@@ -88,7 +95,7 @@ export default function Scroll() {
             .trim();
 
           const isActive = i === visibleIndex;
-          const hideCaption = displayName.toLowerCase() === 'mandala'; // 👈 hide this one
+          const hideCaption = displayName.toLowerCase() === 'mandala';
 
           return (
             <div
