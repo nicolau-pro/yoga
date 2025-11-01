@@ -8,6 +8,7 @@ body {
   width: 100%;
   height: 100%;
   overflow-x: hidden;
+  user-select: none;
 }
 
 .scroll-gallery {
@@ -29,6 +30,30 @@ body {
 
   &.active {
     opacity: 1;
+
+    /* --- Custom cursor zones --- */
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    /* Top two-thirds → previous */
+    &::before {
+      top: 0;
+      height: 66.66%;
+      cursor: url('/media/cursor-up.svg') 16 16, n-resize;
+    }
+
+    /* Bottom third → next */
+    &::after {
+      bottom: 0;
+      height: 33.33%;
+      cursor: url('/media/cursor-down.svg') 16 16, s-resize;
+    }
   }
 
   img {
@@ -56,6 +81,7 @@ body {
     text-align: center;
     padding: 0.2em 0;
     backdrop-filter: blur(5px);
+
     @media (max-width: 768px) {
       font-size: 2rem;
     }

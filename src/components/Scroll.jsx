@@ -88,6 +88,7 @@ export default function Scroll() {
             .trim();
 
           const isActive = i === visibleIndex;
+          const hideCaption = displayName.toLowerCase() === 'mandala'; // 👈 hide this one
 
           return (
             <div
@@ -97,7 +98,7 @@ export default function Scroll() {
               style={{ cursor: 'pointer' }}
             >
               <img src={`/${ASSETS_FOLDER}/${slide}`} alt={displayName} />
-              <div className="caption">{displayName}</div>
+              {!hideCaption && <div className="caption">{displayName}</div>}
             </div>
           );
         })}
