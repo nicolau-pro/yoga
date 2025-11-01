@@ -46,12 +46,25 @@ export default function Scroll() {
   }, []);
 
   // === Handle user click ===
-  const handleClick = (i) => {
+  const handleClick = (e, i) => {
+    const slideElement = e.currentTarget;
+    const rect = slideElement.getBoundingClientRect();
+    const clickY = e.clientY - rect.top;
+
     if (i === currentIndex.current) {
-      currentIndex.current = (currentIndex.current - 1 + SLIDES.length) % SLIDES.length;
+      // User clicked on current slide
+      if (clickY > rect.height / 2) {
+        // bottom half → next slide
+        currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
+      } else {
+        // top half → previous slide
+        currentIndex.current = (currentIndex.current - 1 + SLIDES.length) % SLIDES.length;
+      }
     } else {
+      // Clicked another slide → go directly
       currentIndex.current = i;
     }
+
     setVisibleIndex(currentIndex.current);
     scrollToCurrent();
     restartAutoScroll();
@@ -80,7 +93,7 @@ export default function Scroll() {
             <div
               key={i}
               className={`scroll-image ${isActive ? 'active' : 'dimmed'}`}
-              onClick={() => handleClick(i)}
+              onClick={(e) => handleClick(e, i)}
               style={{ cursor: 'pointer' }}
             >
               <img src={`/${ASSETS_FOLDER}/${slide}`} alt={displayName} />
