@@ -53,11 +53,11 @@ export default function Scroll() {
 
     if (i === currentIndex.current) {
       // User clicked on current slide
-      if (clickY > rect.height / 2) {
-        // bottom half → next slide
+      if (clickY > (rect.height * 2) / 3) {
+        // bottom third → next slide
         currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
       } else {
-        // top half → previous slide
+        // top two-thirds → previous slide
         currentIndex.current = (currentIndex.current - 1 + SLIDES.length) % SLIDES.length;
       }
     } else {
