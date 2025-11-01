@@ -15,24 +15,19 @@ export default function Scroll() {
   const currentIndex = useRef(0);
   const intervalRef = useRef(null);
   const [visibleIndex, setVisibleIndex] = useState(0);
-  const wheelLocked = useRef(false);
 
   // === Smooth scroll to current slide ===
   const scrollToCurrent = () => {
     const container = containerRef.current;
-    const nextImage = container?.children[currentIndex.current];
-    if (nextImage) {
-      nextImage.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+    const target = container?.children[currentIndex.current];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   // === Restart auto-scroll timer ===
   const restartAutoScroll = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-
     intervalRef.current = setInterval(() => {
       currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
       setVisibleIndex(currentIndex.current);
@@ -40,37 +35,7 @@ export default function Scroll() {
     }, config.interval * 1000);
   };
 
-  // === Mouse wheel scroll control ===
-  useEffect(() => {
-    const handleWheel = (e) => {
-      e.preventDefault();
-      if (wheelLocked.current) return;
-
-      wheelLocked.current = true;
-      const delta = e.deltaY;
-
-      if (delta > 0) {
-        currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
-      } else if (delta < 0) {
-        currentIndex.current = (currentIndex.current - 1 + SLIDES.length) % SLIDES.length;
-      }
-
-      setVisibleIndex(currentIndex.current);
-      scrollToCurrent();
-
-      // reset auto-scroll timer after manual scroll
-      restartAutoScroll();
-
-      setTimeout(() => {
-        wheelLocked.current = false;
-      }, config.fade * 1000);
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [config.fade, config.interval]);
-
-  // === Auto-scroll initialization ===
+  // === Initialize auto-scroll ===
   useEffect(() => {
     restartAutoScroll();
     return () => clearInterval(intervalRef.current);
@@ -80,6 +45,18 @@ export default function Scroll() {
     document.documentElement.style.scrollBehavior = 'smooth';
   }, []);
 
+  // === Handle user click ===
+  const handleClick = (i) => {
+    if (i === currentIndex.current) {
+      currentIndex.current = (currentIndex.current - 1 + SLIDES.length) % SLIDES.length;
+    } else {
+      currentIndex.current = i;
+    }
+    setVisibleIndex(currentIndex.current);
+    scrollToCurrent();
+    restartAutoScroll();
+  };
+
   return (
     <>
       {/* Slide counter overlay */}
@@ -88,7 +65,7 @@ export default function Scroll() {
       </div>
 
       {/* Scrollable gallery */}
-      <div className="scroll-gallery" ref={containerRef} style={{ overflow: 'hidden' }}>
+      <div className="scroll-gallery" ref={containerRef}>
         {SLIDES.map((slide, i) => {
           const displayName = slide
             .replace(/\.[^/.]+$/, '')
@@ -97,8 +74,15 @@ export default function Scroll() {
             .replace(/([a-z])([A-Z])/g, '$1 $2')
             .trim();
 
+          const isActive = i === visibleIndex;
+
           return (
-            <div key={i} className="scroll-image">
+            <div
+              key={i}
+              className={`scroll-image ${isActive ? 'active' : 'dimmed'}`}
+              onClick={() => handleClick(i)}
+              style={{ cursor: 'pointer' }}
+            >
               <img src={`/${ASSETS_FOLDER}/${slide}`} alt={displayName} />
               <div className="caption">{displayName}</div>
             </div>
