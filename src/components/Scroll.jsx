@@ -16,6 +16,26 @@ export default function Scroll() {
   const intervalRef = useRef(null);
   const [visibleIndex, setVisibleIndex] = useState(0);
   const [started, setStarted] = useState(false); // slideshow paused at first
+  const audioRef = useRef(null);
+
+  // === Initialize chime audio ===
+  useEffect(() => {
+    const el = new Audio('/chime/Chime.mp3');
+    el.preload = 'auto';
+    el.volume = 1.0;
+    audioRef.current = el;
+  }, []);
+
+  // === Play chime ===
+  const playChime = async () => {
+    try {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = 0;
+      await audioRef.current.play();
+    } catch (err) {
+      console.warn('Playback blocked until user gesture:', err);
+    }
+  };
 
   // === Smooth scroll to current slide ===
   const scrollToCurrent = () => {
@@ -33,6 +53,7 @@ export default function Scroll() {
       currentIndex.current = (currentIndex.current + 1) % SLIDES.length;
       setVisibleIndex(currentIndex.current);
       scrollToCurrent();
+      playChime();
     }, config.interval * 1000);
   };
 
@@ -48,6 +69,7 @@ export default function Scroll() {
       setVisibleIndex(0);
       scrollToCurrent();
       setStarted(true);
+      playChime();
       startAutoScroll();
       return;
     }
@@ -68,6 +90,7 @@ export default function Scroll() {
 
     setVisibleIndex(currentIndex.current);
     scrollToCurrent();
+    playChime();
     if (started) startAutoScroll(); // reset interval
   };
 
