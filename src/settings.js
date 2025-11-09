@@ -17,6 +17,7 @@ export const SLIDES = [
   'SideLunge_L.webp',
   'SideLunge_R.webp',
   'Banana_R.webp',
+  'Boat.webp',
   'Turtle.webp',
   'BlissfulBaby.webp',
   'PlankUpward.webp',
