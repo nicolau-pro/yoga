@@ -6,6 +6,9 @@ export const END_ZOOM_SCALE = 1.08; // scale multiplier at end of slide
 
 export const SLIDES = [
   'Mandala.webp',
+  'ThreadTheNeedle_R.webp',
+  'ThreadTheNeedle_L.webp',
+  'OverheadFoamRoll.webp',
   'SupineSpinalTwist_L.webp',
   'SupineSpinalTwist_R.webp',
   'HeadToKnee_L.webp',
